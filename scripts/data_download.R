@@ -1,7 +1,7 @@
 #### Preamble ####
 # Purpose: Download data from opendatatoronto
 # Author: Zecheng Wu
-# Data: 31 January 2022
+# Data: 3 February 2022
 # Contact: zbill.wu@mail.utoronto.ca
 # License: MIT
 
@@ -38,8 +38,7 @@ write.csv(monthly_shelter_usage, "inputs/data/monthly_shelter_usage.csv")
 
 
 # Read in the raw data. 
-raw_data <- readr::read_csv("inputs/data/raw_data.csv"
-                     )
+raw_data <- readr::read_csv("inputs/data/raw_data.csv")
 # Just keep some variables that may be of interest (change 
 # this depending on your interests)
 names(raw_data)

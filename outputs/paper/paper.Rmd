@@ -1,12 +1,12 @@
 ---
-title: "My title"
-subtitle: "My subtitle if needed"
+title: "Why Do We See More Homeless Men than Women In Toronto?"
 author: 
-  - First author
-  - Another author
-thanks: "Code and data are available at: LINK."
+  - Zecheng Wu
+thanks: "Code and data are available at: https://github.com/nostestwu/starter_folder"
+
 date: "`r format(Sys.time(), '%d %B %Y')`"
-abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
+
+abstract: "The city of Toronto provides a shelter service for people who are homeless in Toronto. We obtain the total number of individuals without any demographic breakdown and we analyze them with graphs and tables. We discovered the number of homeless male is much greater than homeless female. This finding allows us to think about the unemployement rate in Toronto and how women can live better in the Toronto than men"
 output:
   bookdown::pdf_document2
 toc: FALSE
@@ -16,92 +16,102 @@ bibliography: references.bib
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-library(tidyverse)
-library(palmerpenguins)
+library(opendatatoronto)
+library(dplyr)
+
 ```
 
 # Introduction
 
-You can and should cross-reference sections and sub-sections. For instance, Section \@ref(data). R Markdown automatically makes the sections lower case and adds a dash to spaces to generate labels, for instance, Section \@ref(first-discussion-point). 
+Homelessness is an issue all around the world where it determines whether the location is comfortable for people to live or not. Some governments give better benifit to these homeless people and some don't. As a person who lived in Toronto for almost four years, I have seen many homeless people on the street everyday. Therefore, it is important to find out the reason behind this common phenomenon and understand the problem behind.
+
+The city of Toronto provides a shelter service for people who are homeless where we want to discover which age group and gender has the highest number. Since we do not care about the population group, the first thing we did is to filter out the population group that equals to "all population". This step allows us to see the entire data as a whole and easier for the readers to understand what our objective is. Next, we have created a table that contains the information of the month and the number of homeless people in different age group. We discovered the age between 25 to 44 has the highest proportion of homeless people. This result makes us wonder about the unemployement rate and the gender bias for getting accepted by a company. Next, we have created graphs for the number of homeless men and women. It is very interesting to see there are much less women than men.
+
+How do women survive better than men in Toronto? The article from Cultural Daily (Daniel Myrick on November 2, 2016) says that women can get a job much easier than men. This is very interesting because men have better stamina than women which many companies we see nowadays do have more men in them. The result from our paper is different from this idea which momen seems to be the more powerful group in Toronto. According to the statistics Canada (Population estimates on July 1st, by age and sex), there are more women than men in Ontario in 2020 and 2021. Is this showing a gender bias towards finding a job in Toronto? Or women can rely on men without a job? Since we only have limited amount of information, we cannot conclude anything that is certainly true. However, the result itself can help us to explore and anaylze more datasets in other aspects and combine them together to form something meaningful.
+
+The (Table \@ref(tab:dataextract)) explains which age group is the most commonly seen in the shelter. In (Figure \@ref(fig:male)) shows the number of homeless male form 2020 to 2021 and we can compare with (Figure \@ref(fig:female)).
 
 
 
 # Data
 
-Our data is of penguins (Figure \@ref(fig:bills)).
+To data I used is the "Toronto Shelter System Flow" (Open Data Toronto 2021) where it collects information from the homeless people that are using this government service in a csv file. The limitations within this dataset are: it does not contain all the homeless people in Toronto since they could be in other overnight services or do not know this service. Next, I have imported this csv file into R studio (R Core Team 2020), where steps are in the other file named "data_download.R". The libraries I have imported are: opendatatoronto(Gelfand 2020), tidyverse (Wickham et al. 2019), here (Kirill Müller 2020) , knitr (Xie Y 2021) and dplyr (Wickham et al. 2021) for data import and data cleaning.
 
-```{r bills, fig.cap="Bills of penguins", echo = FALSE}
-ggplot(penguins, aes(x = island, fill = species)) +
-  geom_bar(alpha = 0.8) +
-  scale_fill_manual(values = c("darkorange","purple","cyan4"),
-                    guide = FALSE) +
-  theme_minimal() +
-  facet_wrap(~species, ncol = 1) +
-  coord_flip()
+```{r dataextract, echo=FALSE, warning=FALSE, message=FALSE}
+
+library(tidyverse)
+library(here)
+library(knitr)
+
+monthly_shelter_usage <- 
+  read.csv(here::here("inputs/data/monthly_shelter_usage.csv"))
+
+all_pop <- filter(monthly_shelter_usage, population_group == "All Population")
+
+clean <- select(all_pop ,date.mmm.yy. , newly_identified, ageunder16, age16.24, age25.44, age45.64, age65over) %>% slice(1:10)
+
+knitr::kable(clean, 
+    caption = "First ten rows of a dataset of the number of homeless people in different age group",
+    digits = 1, 
+    booktabs = TRUE,
+    linesep = "")
+
 ```
 
-Talk more about it.
+(Table \@ref(tab:dataextract)) is created by using the knitr package where I first filter out the original dataset that only contains the population group that equals to "All population". This allows us to consider all the homeless people instead of considering them by families, refugees, etc. Then, I used the slice function to only display 10 rows. The purpose of this table is to see which age group has the highest number of people. People from the age of 25 to 44 has the highest number followed by age 45 to 64. This shows people that are at the working age seem to have a higher chance being homeless. 
 
-Also bills and their average (Figure \@ref(fig:billssssss)). (Notice how you can change the height and width so they don't take the whole page?)
+Next, I decided to look at the gender within these homeless people. (Figure \@ref(fig:male)) and (Figure \@ref(fig:female)) are created by using a new library called ggplot2 (Wickham 2016) which allows me to produce two horizontal bar charts and compare them. The results show that men has an average around 5000 people whereas women has an average around 3000. 
 
-```{r billssssss, fig.cap="More bills of penguins", echo = FALSE, fig.width=8, fig.height=4}
+```{r male, fig.cap="Male", echo=FALSE, warning=FALSE, message=FALSE}
 
-# This needs to be about the random data tha tI sasmpled?
-ggplot(penguins, aes(x = island, fill = species)) +
-  geom_bar(alpha = 0.8) +
-  scale_fill_manual(values = c("darkorange","purple","cyan4"),
-                    guide = FALSE) +
-  theme_minimal() +
-  facet_wrap(~species, ncol = 1) +
-  coord_flip()
+library(ggplot2)
+
+m <- ggplot(data = all_pop, aes(x = date.mmm.yy., y = gender_male)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() + 
+  labs(x = "Jan 2020 to Dec 2021 (by month)", y = "Number of people") + 
+  ggtitle(" Number of homeless men in Toronto ")
+
+m
+
 ```
 
-Talk way more about it. 
+```{r female, fig.cap="Female", echo=FALSE, warning=FALSE, message=FALSE}
 
+f <- ggplot(data = all_pop, aes(x = date.mmm.yy., y = gender_female)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() + 
+  labs(x = "Jan 2020 to Dec 2021 (by month)", y = "Number of people") + 
+  ggtitle(" Number of homeless women in Toronto ")
 
+f
 
-# Model
-
-\begin{equation}
-Pr(\theta | y) = \frac{Pr(y | \theta) Pr(\theta)}{Pr(y)}  (\#eq:bayes)
-\end{equation}
-
-Equation \@ref(eq:bayes) seems useful, eh?
-
-Here's a dumb example of how to use some references: In paper we run our analysis in `R` [@citeR]. We also use the `tidyverse` which was written by @thereferencecanbewhatever If we were interested in baseball data then @citeLahman could be useful. 
-
-We can use maths by including latex between dollar signs, for instance $\theta$.
-
-
-# Results
-
-# Discussion
-
-## First discussion point
-
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
-
-## Second discussion point
-
-## Third discussion point
-
-## Weaknesses and next steps
-
-Weaknesses and next steps should also be included.
-
-\newpage
-
-\appendix
-
-# Appendix {-}
-
-
-# Additional details
+```
 
 
 \newpage
-
 
 # References
 
+Cultural Daily, "Why Are There More Homeless Men Than Women?", https://culturaldaily.com/homeless-men-women/
 
+Statistics Canada, "Population estimates on July 1st, by age and sex", https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1710000501&pickMembers%5B0%5D=1.7&pickMembers%5B1%5D=2.3&cubeTimeFrame.startYear=2020&cubeTimeFrame.endYear=2021&referencePeriods=20200101%2C20210101
+
+Open Data Toronto 2021, "Toronto Shelter System Flow",  https://open.toronto.ca/dataset/toronto-shelter-system-flow/
+
+R Core Team. 2020. R: A Language and Environment for Statistical Computing. Vienna, Austria: R
+Foundation for Statistical Computing. https://www.R-project.org/.
+
+Gelfand, Sharla. 2020. Opendatatoronto: Access the City of Toronto Open Data Portal. https://CRAN.Rproject.org/package=opendatatoronto.
+
+Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D’Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. “Welcome to the tidyverse.” Journal of Open Source Software 4 (43): 1686. https://doi.org/10.21105/joss.01686.
+
+Wickham, Hadley, Romain François, Lionel Henry, and Kirill Müller. 2021. Dplyr: A Grammar of Data
+Manipulation. https://CRAN.R-project.org/package=dplyr.
+
+Kirill Müller 2020, Package 'here',  https://cran.r-project.org/web/packages/here/here.pdf
+
+Xie Y (2021). knitr: A General-Purpose Package for Dynamic Report Generation in R. R package version 1.37, https://yihui.org/knitr/.
+
+Wickham, Hadley. 2016. Ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York. https://ggplot2.
+tidyverse.org.
